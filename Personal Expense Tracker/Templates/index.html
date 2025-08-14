@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Personal Expense Tracker</h1>
+    <form method="POST">
+        <input type="text" name="item" placeholder="Item Name" required>
+
+        <select name="category" required>
+            <option value="" disabled selected>Select Category</option>
+            {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+        </select>
+
+        <input type="number" step="0.01" name="amount" placeholder="Amount" required>
+        <input type="text" name="date" placeholder="DD-MM-YYYY">
+        <button type="submit">Add Expense</button>
+    </form>
+    <form method="POST" action="/add_category" style="margin-top: 15px; display:flex; gap:10px;">
+        <input type="text" name="new_category" placeholder="New Category" required>
+        <button type="submit" style="background:#f39c12;">Add Category</button>
+    </form>
+    <h2>All Expenses</h2>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Item</th>
+            <th>Category</th>
+            <th>Amount</th>
+        </tr>
+        {% for exp in expenses %}
+            <tr>
+                <td>{{ exp[0] }}</td>
+                <td>{{ exp[1] }}</td>
+                <td>{{ exp[2] }}</td>
+                <td>{{ exp[3] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <div class="links">
+        <a href="/summary">Summary by Category</a> | 
+        <a href="/monthly">Summary by Month</a>
+    </div>
+    <div style="margin-top:30px; text-align:center;">
+        <label for="chartType">Select Chart:</label>
+        <select id="chartType" onchange="showChart()">
+            <option value="pie" selected>Category-wise Pie Chart</option>
+            <option value="bar">Monthly Bar Chart</option>
+        </select>
+    </div>
+    <canvas id="expenseChart" style="max-width:800px; margin:20px auto; display:block;"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const categoryData = JSON.parse('{{ category_data | safe }}');
+    const monthData = JSON.parse('{{ month_data | safe }}');
+
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    let myChart;
+
+    function showChart() {
+        const type = document.getElementById('chartType').value;
+        if (myChart) myChart.destroy();
+
+        if(type === 'pie') {
+            myChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(categoryData),
+                    datasets: [{
+                        data: Object.values(categoryData),
+                        backgroundColor: ['#2980b9','#e74c3c','#f39c12','#2ecc71','#8e44ad','#3498db']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        } else if(type === 'bar') {
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(monthData),
+                    datasets: [{
+                        label: 'Expenses by Month',
+                        data: Object.values(monthData),
+                        backgroundColor: '#2980b9'
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        showChart();
+    });
+</script>
+</body>
+</html>

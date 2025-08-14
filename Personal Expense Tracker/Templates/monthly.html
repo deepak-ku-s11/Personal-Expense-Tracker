@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monthly Summary</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Summary by Month</h1>
+    <table>
+        <tr><th>Month</th><th>Total Expenses</th></tr>
+        {% for month, amt in monthly.items() %}
+        <tr><td>{{ month }}</td><td>{{ amt }}</td></tr>
+        {% endfor %}
+    </table>
+    <a href="/">Back to Home</a>
+</div>
+</body>
+</html>
